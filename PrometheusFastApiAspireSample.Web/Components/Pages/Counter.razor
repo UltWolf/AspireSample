@@ -1,0 +1,33 @@
+﻿@page "/counter"
+@using System.Text
+@inject RabbitMQ.Client.IConnection connection;
+@rendermode InteractiveServer
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="SendToRabiit">Send to rabbit</button>
+
+@code {
+    private int currentCount = 0;
+
+    private void SendToRabiit()
+    {
+        var channel = connection.CreateModel();
+        channel.QueueDeclare(queue: "catalogEvents",
+                 durable: false,
+                 exclusive: false,
+                 autoDelete: false,
+                 arguments: null);
+        var body = Encoding.UTF8.GetBytes("purum pum");
+
+        channel.BasicPublish(exchange: string.Empty,
+                             routingKey: "catalogEvents",
+                              mandatory: false,
+                             basicProperties: null,
+                             body: body);
+    }
+}
